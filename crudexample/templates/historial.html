@@ -1,0 +1,171 @@
+<!doctype html>
+<html>
+	<head>
+        <script>
+            localStorage.setItem("SegundaPagina","/detalle_historial")
+            ////////FUNCIONES PRINCIPALES DE LA PAGINA/////////////////////
+            function CargarGrilla() {
+            $('#tablaPrincipal').empty()
+            $.ajax({
+                 url : "/historiaClinicas",
+                 dataType: "json",
+                 success : function (data) {
+					console.log(data)
+					
+                    localStorage.setItem("DatosCargadosGrilla",JSON.stringify(data))
+                          // una vez que obtenga el json parseo los resultados
+                        $datos = $('#tablaPrincipal');
+    
+                        // creo la tabla y muestro los datos
+                        $tabla = $('<table id="table" class="table table-striped" width="200" border="1"><tbody class="table table-striped" width="200" border="1"><tr><th scope="col">Id</th><th scope="col">Paciente</th><th scope="col">Observacion</th></tr></tbody></table>');
+                        
+						var prueba;
+                        // hago un ciclo
+                        for (var i = 0; i < data.length; i++) {
+							
+							var urlPacientes=data[i].paciente
+							//console.log(urlMedicos)
+							
+							
+						
+							$.ajax({
+                 			url : urlPacientes,
+                 			dataType: "json",
+							async: false,
+                 			success : function (paciente) {
+							localStorage.setItem("paciente_nombre",paciente.nombre_apellido);
+							localStorage.setItem("paciente_id",paciente.id);
+							console.log(prueba)
+							
+							}
+							})
+							
+							var pacienteNombre= localStorage.getItem("paciente_nombre");
+							var pacienteId=localStorage.getItem("paciente_id");
+							
+                            var $tr = $('<tr>');
+                            $tr.append('<td id="id" class="id">' + data[i].id + '</td>');
+							$tr.append('<td id="paciente_nombre" class="fecha">' + pacienteNombre + '</td>');
+                            $tr.append('<td id="fecha" class="fecha">' + data[i].observacion + '</td>');
+                            $tr.append('<td><button class="btn btn-primary" onClick="Editar_Ver()">Ver</button></td>');
+							$tr.append('<td style="visibility:hidden" id="paciente_id" class="fecha">' + pacienteId + '</td>');
+							$tr.append('</tr>')
+                            // agrego la columna tr a la tabla
+                            $tabla.append($tr);
+
+                        }
+    
+                        // agrego la tabla al div TablaPrincipal
+                        $datos.append($tabla);
+					
+	
+						
+			}
+            })
+			}
+
+            function Editar_Ver(){
+            location.href = localStorage.setItem("accion","editar");
+            $('#table tr').on("click",function() {
+            var id = $(this).find("td").eq(0).html();
+            var paciente= $(this).find("td").eq(1).html(); 
+            var observacion = $(this).find("td").eq(2).html();
+            var id_paciente = $(this).find("td").eq(5).html();
+            var datos= {
+                id: id,
+                paciente: paciente,
+                observacion: observacion,
+				id_paciente:id_paciente,
+            }   
+            localStorage.setItem("valoresFilaSeccionada",JSON.stringify(datos))
+            //window.open("/aaa","ventana1","width=500,height=500,scrollbars=NO")
+            location.href = localStorage.getItem("SegundaPagina");
+            });
+            }
+
+            function eliminar(){
+            var confirmar_eliminar=ConfirmDelete();
+            if (confirmar_eliminar===true){                
+                $('#table tr').on("click",function() {
+                var Id = $(this).find("td").eq(0).html();
+                var url="/turnos/"+Id
+                $.ajax({
+                 url : url,
+                 type: "DELETE",
+                 dataType: "json",
+                 data:Id,
+                 success : function (data) {
+                    alert("Eliminado")
+                    location.reload();
+                }
+                })
+
+            })
+             }else{
+                 alert("no se elimina")
+             }  
+            }
+
+            function ConfirmDelete()
+            {
+                var x = confirm("Confirma que desea eliminar el registro?");
+                if (x)
+                    return true;
+                else
+                    return false;
+             }
+
+
+            function AgregarDatos(){
+            var accion="agregar";
+            localStorage.setItem("accion",accion)
+            localStorage.removeItem("valoresFilaSeccionada")
+            location.href = localStorage.getItem("SegundaPagina");
+            }
+
+            
+
+            function buscar() {
+                var tableReg = document.getElementById('table');
+                var searchText = document.getElementById('txtBusqueda').value.toLowerCase();
+                for (var i = 1; i < tableReg.rows.length; i++) {
+                    var cellsOfRow = tableReg.rows[i].getElementsByTagName('td');
+                    var found = false;
+                    for (var j = 0; j < cellsOfRow.length && !found; j++) {
+                        var compareWith = cellsOfRow[j].innerHTML.toLowerCase();
+                        if (searchText.length == 0 || (compareWith.indexOf(searchText) > -1)) {
+                            found = true;
+                        }
+                    }
+                    if (found) {
+                        tableReg.rows[i].style.display = '';
+                    } else {
+                        tableReg.rows[i].style.display = 'none';
+                    }
+                }
+            }
+
+
+        </script>
+        <meta charset="utf-8">
+        <title>{{title}}</title>
+        <!-- <script src="http://0.0.0.0:8082/lib/zinggrid.min.js" defer></script> -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+    </head>
+
+    <body onload="CargarGrilla()">
+        <div style="background-color:#7B9CF6"><h1 aling="center" class="pacientes">{{title}}</h1></div>
+		<a onClick="AgregarDatos()" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Agregar {{title}}</a>
+		<div class="container-sm">
+
+		<div class="form-inline my-2 my-lg-0">
+        <input class="form-control mr-sm-2" type="search" id="txtBusqueda" placeholder="Buscar" aria-label="search" onkeyup="buscar()">
+        <button class="btn btn-outline-success my-2 my-sm-0" onclick="buscar()">Buscar {{title}}</button>
+        </div>
+         <div id="tablaPrincipal"></div> 
+       
+		
+    </body>
+</html>

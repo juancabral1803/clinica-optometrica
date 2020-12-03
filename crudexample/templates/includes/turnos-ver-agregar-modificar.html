@@ -1,0 +1,217 @@
+<!doctype html>
+<html>
+    <head>
+        <script> 
+                var datosRecibidos = JSON.parse(localStorage.getItem("valoresFilaSeccionada"));
+                var accion = localStorage.getItem("accion");
+                function Carga_Inicial(){
+                    getPacientes();
+                    getMedicos();
+                    cargar();
+                }
+                
+                
+                function getPacientes(){
+                var id=localStorage
+                var url="/pacientes"
+                $.ajax({
+                url: url, 
+                dataType: "json",
+                success: function(data){
+                    console.log(data)
+                    
+                   
+                $.each(data,function(key, registro) {
+                    $("#Select_Pacientes").append('<option value='+registro.id+'>'+registro.nombre_apellido+'</option>');
+                    if (accion==='editar'){
+                        $("#Select_Pacientes").val(datosRecibidos.id_paciente)
+                    }
+                    //$("#Select_Pacientes").val(datosRecibidos.id_paciente)
+                });        
+                },
+                error: function(data) {
+                alert('error');
+                }
+            });
+            }
+
+
+            function getMedicos(){
+            $.ajax({
+            type: "GET",
+            url: '/medicos', 
+            dataType: "json",
+            success: function(data){
+            $.each(data,function(key, registro) {
+                $("#Select_Medicos").append('<option value='+registro.id+'>'+registro.nombre+'</option>');
+                //$("#Select_Medicos").val(datosRecibidos.id_medico)
+            });        
+            },
+            error: function(data) {
+            alert('error');
+            }
+            });
+            }
+
+            function cargar(){
+               var datosRecibidos = JSON.parse(localStorage.getItem("valoresFilaSeccionada"));
+               var accion=localStorage.getItem("accion");
+               $("#id").val(datosRecibidos.id_paciente);
+               $("#Select_Pacientes").val(datosRecibidos.paciente);
+               $("#fecha").val(datosRecibidos.fecha);
+               $("#hora").val(datosRecibidos.hora);
+               $("#Select_Medico").val(datosRecibidos.medico);     
+              //document.getElementById('accion').innerHTML = accion;     
+            }
+            
+
+        
+            function AgregarNuevo(){
+            const csrf_token = getCookie('csrftoken');
+            var idPaciente=document.getElementById("Select_Pacientes").value
+            var idMedico=document.getElementById("Select_Medicos").value
+            var Paciente="http://127.0.0.1:8000/pacientes/"+idPaciente+"/";
+            var Medico="http://127.0.0.1:8000/medicos/"+idMedico+"/";
+            var data = {};
+            data.paciente = Paciente;
+            data.fecha = document.getElementById("fecha").value;
+            data.hora = document.getElementById("hora").value;
+            data.medico = Medico;
+            console.log(data)
+            //var datosRecibidos = JSON.parse(localStorage.getItem("valoresFilaSeccionada"));
+            $.ajax({
+            type: "POST",
+            url: "/turnos/",
+            data: data,
+            beforeSend: function (xhr, settings) {
+            xhr.setRequestHeader("X-CSRFToken", '{{ csrf_token }}');
+            },
+            success: function (arg) {
+                alert("se agrego de forma correcta")
+                location.href ="/vista_turnos";
+            }
+            
+            });
+            }
+     
+    
+            function Actualizar(){
+            const csrf_token = getCookie('csrftoken');
+            var data = {};
+            data.name = document.getElementById("nombre").value;
+            data.alias = document.getElementById("alias").value;
+            data.age = document.getElementById("edad").value;
+            data.email = document.getElementById("email").value;
+            var datosRecibidos = JSON.parse(localStorage.getItem("valoresFilaSeccionada"));
+            var Id=document.getElementById("id").value;
+            var url="/heroes/"+Id;
+            $.ajax({
+            type: "patch",
+            url: "/heroes/6/",
+            data: data,
+            beforeSend: function (xhr, settings) {
+            xhr.setRequestHeader("X-CSRFToken", '{{ csrf_token }}');
+            },
+            success: function (arg) {
+                alert("se actualizo de forma correcta")
+                location.href ="/zinggrid";
+            }
+            
+            });
+            }
+    
+            function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+            }
+            return cookieValue;
+            }
+
+            function volver(){
+            
+                location.href = "/vista_pacientes"
+            }
+            
+        </script>
+        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+
+        <meta charset="utf-8">
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+		
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+
+<meta charset="utf-8">
+	
+<title>Detalle {{title}}</title>
+</head>
+
+
+	
+	<body onload="Carga_Inicial()">
+	<div style="background-color:#7B9CF6"><h1 align="center" class="pacientes">{{title}}</h1></div>
+		
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="well well-sm">
+                <form class="form-horizontal" method="post">
+                    <fieldset>
+                        <legend class="text-center header">Agregar {{title}}</legend>
+
+                        <div class="form-group">
+                            <span class="col-md-1 col-md-offset-2 text-center"><i class="fa fa-user bigicon"></i></span>
+                            <div class="col-md-8">
+                                <input id="id" name="id" type="text" placeholder="id" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleFormControlSelect1">Pacientes</label>
+                            <select class="form-control" id="Select_Pacientes">
+                            </select>
+                          </div>
+                        <div class="form-group">
+                            <span class="col-md-1 col-md-offset-2 text-center"><i class="fa fa-user bigicon"></i></span>
+                            <div class="col-md-8">
+                                <input id="fecha" name="fecha" type="date" placeholder="Fecha" class="form-control">
+                            </div>
+                        </div>
+						    <div class="form-group">
+                            <span class="col-md-1 col-md-offset-2 text-center"><i class="fa fa-user bigicon"></i></span>
+                            <div class="col-md-8">
+                                <input id="hora" name="hora" type="time" placeholder="Hora" class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="exampleFormControlSelect1">Medicos</label>
+                            <select class="form-control" id="Select_Medicos">
+                            </select>
+                          </div>
+						                     
+
+	
+						<div class="btn-group col-md-8 text-center">
+  <button type="button" id="guardar" class="btn btn-primary btn-lg" onclick="AgregarNuevo()">Guardar</button>
+  <button type="button" class="btn btn-primary btn-lg">Volver</button>
+  
+</div>
+                    </fieldset>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+		
+</body>
+</html>
